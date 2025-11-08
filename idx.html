@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Surprise Letter</title>
+<style>
+  :root{
+    --bg:#0f0f10;
+    --card:#ffffff;
+    --accent:#e85a7b;
+    --shadow: rgba(0,0,0,0.35);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg,#0a0a0b 0%, #111216 100%);
+    color:#111;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:20px;
+  }
+
+  .stage{
+    width:100%;
+    max-width:420px;
+    height:80vh;
+    max-height:780px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  .hint {
+    position:absolute;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.45);
+    color:white;
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:13px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* envelope wrapper */
+  .envelope-wrap{
+    width:320px;
+    height:220px;
+    max-width:86%;
+    position:relative;
+    perspective:1000px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* envelope body */
+  .envelope{
+    width:100%;
+    height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition: transform 700ms cubic-bezier(.2,.9,.2,1);
+    --foldColor:#f2f2f2;
+  }
+
+  /* back of envelope (bottom) */
+  .env-bottom{
+    position:absolute;
+    width:100%;
+    height:100%;
+    background: linear-gradient(180deg,#ffffff,#f3f3f3);
+    border-radius:12px;
+    box-shadow: 0 8px 30px var(--shadow);
+    z-index:1;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .env-flap{
+    position:absolute;
+    width:120%;
+    height:70%;
+    left:-10%;
+    top:-30%;
+    background: linear-gradient(180deg,#ffeaea,#ffdfe6);
+    border-radius:7px;
+    transform-origin:50% 100%;
+    transform: rotateX(0deg);
+    transition: transform 700ms cubic-bezier(.2,.9,.2,1);
+    z-index:3;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* small decoration heart on flap */
+  .heart{
+    width:38px;
+    height:28px;
+    background: radial-gradient(circle at 25% 20%, #ff7aa2 10%, #e85a7b 60%);
+    clip-path: path('M10 3C10 1.3 11.3 0 13 0C14.2 0 15.2 0.8 15.8 1.7C16.4 0.8 17.4 0 18.6 0C20.3 0 21.6 1.3 21.6 3C21.6 9 13 12 13 12C13 12 4.4 9 4.4 3C4.4 1.3 5.7 0 7.4 0C8.6 0 9.6 0.8 10.2 1.7C10.8 0.8 11.8 0 13 0');
+    opacity:0.95;
+  }
+
+  /* letter inside */
+  .letter{
+    width:86%;
+    height:70%;
+    background:linear-gradient(180deg,#fff,#fff);
+    border-radius:6px;
+    position:absolute;
+    z-index:2;
+    transform: translateY(100%);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: transform 700ms cubic-bezier(.2,.9,.2,1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:14px;
+    text-align:center;
+    cursor:pointer;
+  }
+
+  .letter .content{
+    font-size:16px;
+    color:#222;
+  }
+
+  /* when envelope open - classes toggled by JS */
+  .opened .env-flap{
+    transform: rotateX(-160deg);
+  }
+  .opened .letter{
+    transform: translateY(-8%);
+  }
+
+  /* the preview badge that first appears (like "open your letter") */
+  .notice{
+    width:92%;
+    max-width:420px;
+    padding:12px 14px;
+    border-radius:10px;
+    background:linear-gradient(90deg,#fff,#f8f8ff);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    text-align:center;
+    font-size:14px;
+    color:#222;
+    display:none;
+  }
+  .notice.show{ display:block; animation: fadeIn 400ms ease both; }
+
+  @keyframes fadeIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+
+  /* small reveal content under envelope (hidden initially) */
+  .reveal{
+    width:100%;
+    margin-top:12px;
+    text-align:center;
+    max-width:420px;
+    color:#fff;
+    display:none;
+  }
+  .reveal.show{ display:block; animation: fadeIn 350ms ease both; }
+
+  /* responsive tweaks */
+  @media (max-width:420px){
+    .envelope-wrap{ height:46vw; }
+    .letter .content{ font-size:15px; padding:6px; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="notice" id="notice">You've got a message — tap the letter to open it!</div>
+
+    <div class="envelope-wrap" id="wrap" aria-hidden="false">
+      <div class="envelope" id="envelope">
+        <div class="env-bottom" aria-hidden="true">
+          <!-- subtle pattern or background -->
+        </div>
+
+        <div class="letter" id="letter" role="button" tabindex="0" aria-label="Open letter">
+          <div class="content" id="letterText">
+            <strong>Open me!</strong><br><small>Tap to reveal a surprise</small>
+          </div>
+        </div>
+
+        <div class="env-flap" id="flap">
+          <div class="heart" style="transform:translateY(6px)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal" id="reveal">
+      <div style="padding:18px;border-radius:12px;background:linear-gradient(180deg,#1b1b1c,#171718);box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+        <h2 style="margin:0 0 6px 0;color:#fff">Hello 👋</h2>
+        <p style="margin:0;color:#eee">This is the secret content revealed when the envelope opens. You can load any content here — an image, a coupon code, or an audio file.</p>
+        <div style="margin-top:12px">
+          <a id="cta" href="#" style="display:inline-block;padding:8px 14px;border-radius:8px;background:linear-gradient(90deg,#ff7aa2,#e85a7b);color:white;text-decoration:none;font-weight:600;">Get Gift</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint">Tip: Tap the letter</div>
+  </div>
+
+<script>
+  // Simple behavior: show notice, then show letter prompt after delay.
+  (function(){
+    const stage = document.getElementById('stage');
+    const envelope = document.getElementById('envelope');
+    const envelopeWrap = document.getElementById('wrap');
+    const flap = document.getElementById('flap');
+    const letter = document.getElementById('letter');
+    const notice = document.getElementById('notice');
+    const reveal = document.getElementById('reveal');
+    const hint = document.querySelector('.hint');
+
+    // Show the notice / letter after a small delay (to mimic the behavior in the video)
+    setTimeout(() => {
+      notice.classList.add('show');
+      // show letter slightly after
+      setTimeout(()=> {
+        letter.style.transform = 'translateY(8%)';
+        // return it back to default (so CSS transition is visible)
+        setTimeout(()=> letter.style.transform='translateY(100%)', 150);
+      }, 400);
+    }, 600);
+
+    // Click / tap to open
+    function openEnvelope() {
+      if(envelope.classList.contains('opened')) return; // already open
+      envelope.classList.add('opened');
+      notice.classList.remove('show');
+      reveal.classList.add('show');
+      // optional: hide hint
+      hint.style.display='none';
+    }
+
+    letter.addEventListener('click', openEnvelope);
+    letter.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' ') openEnvelope();
+    });
+
+    // If you want to auto-open after n seconds:
+    // setTimeout(openEnvelope, 5000);
+
+    // CTA action example: custom behavior (download, redirect, etc.)
+    document.getElementById('cta').addEventListener('click', function(e){
+      e.preventDefault();
+      // Example action: open a link or show a code.
+      // window.location.href = 'https://your-offer-link.example';
+      alert('You clicked the CTA — put your link action here.');
+    });
+
+    // Accessibility: when leaving page, reset (optional)
+    window.addEventListener('visibilitychange', ()=>{
+      if(document.hidden){
+        // collapse or keep state — leave as is
+      }
+    });
+  })();
+</script>
+</body>
+</html>
