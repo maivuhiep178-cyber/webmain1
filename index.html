@@ -80,24 +80,16 @@
       .links{display:flex;flex-direction:column;gap:8px}
       .link{
         display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.4);
-        box-shadow: 0 0 25px rgba(255,255,255,0.05);
+        background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        border:1px solid rgba(255,255,255,0.03); text-decoration:none; color:inherit;
+        transform-origin:center left; will-change:transform,opacity;
+        transition:transform .25s cubic-bezier(.2,.9,.3,1), box-shadow .2s;
+        box-shadow: 0 4px 18px rgba(2,6,23,0.45);
       }
-      .link:hover{
-        transform: translateX(6px) scale(1.01);
-        box-shadow: 0 0 35px rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.6);
-        background: rgba(255,255,255,0.15);
-      }
+      .link:hover{transform:translateX(6px) scale(1.01); box-shadow:0 10px 30px rgba(2,6,23,0.55)}
       .link .dot{
-        width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.3);
+        width:36px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;
+        background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
         font-weight:700;
       }
       .link-icon{width:20px;height:20px;}
